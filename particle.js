@@ -3,31 +3,31 @@ const speed = 5.0; // Particle wander speed
 
 class Particle{    
     constructor(vars){    
-        initialVariables = vars;
-        size = vars.size | 1.0;
+        let initialVariables = vars;
+        let size = vars.size || 1.0;
         
-        desiredPitch = vars.desiredPitch | 1000.0;
-        pitchVariance = vars.pitchVariance | 200.0;
+        let desiredPitch = vars.desiredPitch || 1000.0;
+        let pitchVariance = vars.pitchVariance || 200.0;
     
-        volumeMultiplier = vars.volumeMultiplier | 0.1;
+        let volumeMultiplier = vars.volumeMultiplier || 0.1;
     
-        position = vars.position | (0.0, 0.0);
-        wander = vars.wander | (1.0, 0.0);
+        let position = vars.position || [0.0, 0.0];
+        let wander = vars.wander || [1.0, 0.0];
     
-        color = vars.color | rgb(0, 0, 0);
+        let color = vars.color || [0, 0, 0];
     
-        energy = vars.energy | 0.0;
-        eDecay = vars.eDecay | 1.0;
-        eMultiplier = vars.eMultiplier | 1.0;
-        eThreshhold = vars.eThreshhold | 5.0;
+        let energy = vars.energy || 0.0;
+        let eDecay = vars.eDecay || 1.0;
+        let eMultiplier = vars.eMultiplier || 1.0;
+        let eThreshhold = vars.eThreshhold || 5.0;
         
         // Only parents split, children die when splitting
-        isParent = vars.isParent | true;
+        let isParent = vars.isParent || true;
         
-        energyPerSecond = vars.energyPerSecond | 0;
+        let energyPerSecond = 0;
         
-        children = vars.children | [];
-        Object.assign(initialVariables, sizeMult, speed, size, desiredPitch, pitchVariance, volumeMultiplier, position, wander, color, energy, eDecay, eMultiplier, eThreshhold, isParent, energyPerSecond, children);
+        let children = vars.children || [];
+        Object.assign(this, initialVariables, sizeMult, speed, size, desiredPitch, pitchVariance, volumeMultiplier, position, wander, color, energy, eDecay, eMultiplier, eThreshhold, isParent, energyPerSecond, children);
     }
     
     update = (delta) => {
@@ -78,7 +78,7 @@ class Particle{
             children[0] = new Particle(adjustedVariables);
             children[1] = new Particle(adjustedVariables);
         }else{
-            this = null;
+            
         }
         return;
     }
@@ -111,4 +111,15 @@ class Particle{
         this.position[0] = this.position[0] + (this.wander[0] * delta * this.speed);
         this.position[1] = this.position[1] + (this.wander[1] * delta * this.speed); 
     }
+
+    // Getters
+    getPosition = () => {
+        return this.position;
+    }
+
+    getSize = () => {
+        return this.size;
+    }
 }
+
+export {Particle};
