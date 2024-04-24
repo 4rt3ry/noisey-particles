@@ -6,7 +6,7 @@ const env = {
     width: window.innerWidth,
     height: window.innerHeight,
     delta: 1 / 60,
-    particles: 200
+    particles: 20
 }
 
 const canvas = document.getElementById("canvas");
@@ -25,12 +25,13 @@ const init = () => {
                 pitchVariance: 1,
                 volumeMultiplier: 1,
                 position: [Math.random() * env.width, Math.random() * env.height],
-                wander: [1, 0],
+                speed: 100,
                 color: [0, 0, 0],
                 energy: 0,
                 eDecay: 0,
                 eMultiplier: 1,
                 eThreshhold: 5,
+                env,
                 isParent: true
             }));
     }

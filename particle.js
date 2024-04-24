@@ -1,5 +1,4 @@
-const sizeMult = 0.5; // Size multiplier based on energy
-const speed = 5.0; // Particle wander speed
+import * as perlin from "https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.0.0/simplex-noise.js"
 
 class Particle {
     constructor(params) {
@@ -8,7 +7,6 @@ class Particle {
         // - Arthur
 
         Object.assign(this, { ...params })
-        this.initialVariables = params;
         this.size ??= 1.0;
         this.sizeMult ??= 0.5;
 
@@ -18,8 +16,8 @@ class Particle {
         this.volumeMultiplier ??= 0.1;
 
         this.position ??= [0.0, 0.0];
-        this.wander ??= [1.0, 0.0];
-        
+        this.velocity ??= [0, 0];
+
         this.color ??= [0, 0, 0];
 
         this.energy ??= 0.0;
@@ -31,16 +29,20 @@ class Particle {
         this.isParent ??= true;
 
         this.energyPerSecond ??= 0;
-        this.speed ??= 10;
+        this.speed ??= 1;
 
         this.children ??= [];
+        this.env ??= {
+            width: 100,
+            height: 100
+        }
+
+        // Non parameterized fields
+        this.initialVariables = params;
+        this.noise = new SimplexNoise();
     }
 
     update = (delta, ctx) => {
-        // Randomize + Normalize wander, move
-        this.wander[0] += (Math.random() - 0.5);
-        this.wander[1] += (Math.random() - 0.5);
-        this.normalizeWander();
         this.moveForward(delta);
 
         // Increment and decay energy
@@ -51,12 +53,13 @@ class Particle {
         if (this.energy < 0) {
             this.energy = 0;
         } else if (this.energy > this.eThreshhold) {
+            this.energy = this.eThreshhold
             this.split();
         }
 
         // Adjust visual size
         this.adjustSize();
-
+        ctx.fillStyle = this.getColor();
         ctx.fillRect(this.position[0] - this.size / 2.0, this.position[1] - this.size / 2.0, this.size, this.size);
 
         if (this.isParent) {
@@ -84,10 +87,8 @@ class Particle {
 
     split = () => {
         if (this.isParent) {
-            console.log(this);
-            let adjustedVariables = this.initialVariables;
+            let adjustedVariables = structuredClone(this.initialVariables);
             adjustedVariables.isParent = false;
-            adjustedVariables.sizeMult = 1;
             adjustedVariables.position[0] += (Math.random() - 0.5) * 20;
             adjustedVariables.position[1] += (Math.random() - 0.5) * 20;
             this.children[0] = new Particle(adjustedVariables);
@@ -114,18 +115,47 @@ class Particle {
         this.size = 1.0 + (this.sizeMult * this.energy);
     }
 
+    getColor = () => {
+        // TODO: move to constructor
+        const colors = [
+            "#a3c4bc",
+            "#bfd7b5",
+            "#e7efc5",
+            "#f2dda4",
+            "#fe4a49"
+        ];
 
-    // Normalizes wander
-    normalizeWander = () => {
-        let mag = this.wander[0] * this.wander[0] + this.wander[1] * this.wander[1];
-        this.wander[0] = this.wander[0] / mag;
-        this.wander[1] = this.wander[1] / mag;
+        // linearly interpolate between 0-energyThreshold
+        const index = Math.floor(this.energy / (this.eThreshhold + 1) * colors.length);
+        return colors[index];
     }
+
+
+    // // Normalizes wander
+    // normalizeWander = () => {
+    //     let mag = this.wander[0] * this.wander[0] + this.wander[1] * this.wander[1];
+    //     this.wander[0] = this.wander[0] / mag;
+    //     this.wander[1] = this.wander[1] / mag;
+    // }
 
     // Moves forwards
     moveForward = (delta = 1.0 / 60.0) => {
-        this.position[0] = this.position[0] + (this.wander[0] * delta * this.speed);
-        this.position[1] = this.position[1] + (this.wander[1] * delta * this.speed);
+        let angle = this.noise.noise2D(this.position[0] * 0.01, this.position[1] * 0.01) * 3.14 / 2;
+
+        // change in x, change in y
+        let cx = Math.cos(angle);
+        let cy = Math.sin(angle);
+
+
+        this.position[0] += (cx * delta * this.speed);
+        this.position[1] += (cy * delta * this.speed);
+
+
+        // wrap across the screen
+        if (this.position[0] > this.env.width) this.position[0] = 0;
+        if (this.position[0] < 0) this.position[0] = this.env.width;
+        if (this.position[1] > this.env.height) this.position[1] = 0;
+        if (this.position[1] < 0) this.position[1] = this.env.height;
     }
 
     // Getters
@@ -136,6 +166,8 @@ class Particle {
     getSize = () => {
         return this.size;
     }
+
+
 }
 
 export { Particle };
