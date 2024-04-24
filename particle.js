@@ -2,48 +2,44 @@ const sizeMult = 0.5; // Size multiplier based on energy
 const speed = 5.0; // Particle wander speed
 
 class Particle {
-    constructor(vars) {
-        let initialVariables = vars;
-        let size = vars.size ?? 1.0;
-        let sizeMult = vars.sizeMult ?? 0.5;
+    constructor(params) {
 
-        let desiredPitch = vars.desiredPitch ?? 1000.0;
-        let pitchVariance = vars.pitchVariance ?? 200.0;
+        // I changed the format of this to allow for easier assigning of properties
+        // - Arthur
 
-        let volumeMultiplier = vars.volumeMultiplier ?? 0.1;
+        Object.assign(this, { ...params })
+        this.initialVariables = params;
+        this.size ??= 1.0;
+        this.sizeMult ??= 0.5;
 
-        let position = vars.position ?? [0.0, 0.0];
-        let wander = vars.wander ?? [1.0, 0.0];
+        this.desiredPitch ??= 1000.0;
+        this.pitchVariance ??= 200.0;
 
-        let color = vars.color ?? [0, 0, 0];
+        this.volumeMultiplier ??= 0.1;
 
-        let energy = vars.energy ?? 0.0;
-        let eDecay = vars.eDecay ?? 1.0;
-        let eMultiplier = vars.eMultiplier ?? 1.0;
-        let eThreshhold = vars.eThreshhold ?? 5.0;
+        this.position ??= [0.0, 0.0];
+        this.wander ??= [1.0, 0.0];
+        
+        this.color ??= [0, 0, 0];
+
+        this.energy ??= 0.0;
+        this.eDecay ??= 1.0;
+        this.eMultiplier ??= 1.0;
+        this.eThreshhold ??= 5.0;
 
         // Only parents split, children die when splitting
-        let isParent = vars.isParent ?? true;
+        this.isParent ??= true;
 
-        let energyPerSecond = vars.energyPerSecond ?? 0;
+        this.energyPerSecond ??= 0;
+        this.speed ??= 10;
 
-        let children = vars.children ?? [];
-
-        Object.assign(this, {
-            initialVariables,
-            sizeMult, speed,
-            size, desiredPitch,
-            pitchVariance, volumeMultiplier,
-            position, wander, color,
-            energy, eDecay, eMultiplier,
-            eThreshhold, isParent, energyPerSecond, children
-        });
+        this.children ??= [];
     }
 
     update = (delta, ctx) => {
         // Randomize + Normalize wander, move
-        this.wander[0] += (Math.random() - 0.5) * 0.2;
-        this.wander[1] += (Math.random() - 0.5) * 0.2;
+        this.wander[0] += (Math.random() - 0.5);
+        this.wander[1] += (Math.random() - 0.5);
         this.normalizeWander();
         this.moveForward(delta);
 
@@ -64,7 +60,7 @@ class Particle {
         ctx.fillRect(this.position[0] - this.size / 2.0, this.position[1] - this.size / 2.0, this.size, this.size);
 
         if (this.isParent) {
-        if (this.children?.length > 0) {
+            if (this.children?.length > 0) {
                 this.children[0].update(delta, ctx);
                 this.children[1].update(delta, ctx);
             }
@@ -74,7 +70,7 @@ class Particle {
 
     // Handles sound input to the particle
     inputSound = (input) => {
-        if(this.children.length > 0){
+        if (this.children.length > 0) {
             this.children[0]?.inputSound(input);
             this.children[1]?.inputSound(input);
         }
@@ -92,8 +88,8 @@ class Particle {
             let adjustedVariables = this.initialVariables;
             adjustedVariables.isParent = false;
             adjustedVariables.sizeMult = 1;
-            adjustedVariables.position[0] += (Math.random()-0.5) * 20;
-            adjustedVariables.position[1] += (Math.random()-0.5) * 20; 
+            adjustedVariables.position[0] += (Math.random() - 0.5) * 20;
+            adjustedVariables.position[1] += (Math.random() - 0.5) * 20;
             this.children[0] = new Particle(adjustedVariables);
             this.children[1] = new Particle(adjustedVariables);
             this.energy = 0;
@@ -128,8 +124,8 @@ class Particle {
 
     // Moves forwards
     moveForward = (delta = 1.0 / 60.0) => {
-        this.position[0] = this.position[0] + (this.wander[0] * delta * 1);
-        this.position[1] = this.position[1] + (this.wander[1] * delta * 1);
+        this.position[0] = this.position[0] + (this.wander[0] * delta * this.speed);
+        this.position[1] = this.position[1] + (this.wander[1] * delta * this.speed);
     }
 
     // Getters
