@@ -30,7 +30,7 @@ const analyzer = () => {
                 // capture microphone input
                 micStream = audioCtx.createMediaStreamSource(stream);
                 micStream.connect(analyserNode);
-                analyze();
+                analyze(analyserNode);
             },
             function (e) {
                 alert('Error capturing audio.');
@@ -41,7 +41,7 @@ const analyzer = () => {
 }
 
 const analyze = () => {
-    // console.log()
+    // Get pitch data 
     requestAnimationFrame(analyze);
     const bufferLength = analyserNode.fftSize;
     const buffer = new Float32Array(bufferLength);
@@ -49,8 +49,19 @@ const analyze = () => {
 
     const acValue = smooth(autoCorrelate(buffer, audioCtx.sampleRate));
     if (acValue > 0)
-    console.log(acValue);
-    // console.log(Math.floor(acValue));
+    {
+        console.log(acValue);
+    }
+
+    // Get volume data?? IDK its some kind of data
+    {
+        const array = new Uint8Array(analyserNode.frequencyBinCount);
+        analyserNode.getByteFrequencyData(array);
+        const arraySum = array.reduce((a, value) => a + value, 0);
+        const average = arraySum / array.length;
+    
+        console.log(Math.round(average));
+    }
 }
 
 // must be run per frame
