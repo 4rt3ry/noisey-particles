@@ -7,7 +7,7 @@ const env = {
     width: window.innerWidth,
     height: window.innerHeight,
     delta: 1 / 60,
-    particles: 20
+    particles: 200
 }
 
 const canvas = document.getElementById("canvas");
@@ -29,9 +29,9 @@ const init = () => {
                 speed: 100,
                 color: [0, 0, 0],
                 energy: 0,
-                eDecay: 0,
+                eDecay: 12,
                 eMultiplier: 1,
-                eThreshhold: 5,
+                eThreshhold: 10,
                 env,
                 isParent: true
             }));
@@ -51,12 +51,13 @@ function draw() {
     let input = audioInput();
     if ((input.pitch ?? 0) > 0)
         console.log(input);
-    console.log(input);
 
     for (let i = 0; i < particles.length; i++) {
         particles[i].update(env.delta, ctx);
         particles[i].inputSound(input);
     }
+
+    // console.log(particles[0].position[0] + particles[0].position[1])
 
     window.requestAnimationFrame(draw);
 }

@@ -1,5 +1,15 @@
 import * as perlin from "https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.0.0/simplex-noise.js"
 
+const colors = [
+    "#12657a",
+    "#4bd5b2",
+    "#f2dda4",
+    "#fe4a49",
+    "#fe4a49"
+];
+
+const pitchRange = [60, 1000];
+
 class Particle {
     constructor(params) {
 
@@ -23,7 +33,8 @@ class Particle {
         this.energy ??= 0.0;
         this.eDecay ??= 1.0;
         this.eMultiplier ??= 1.0;
-        this.eThreshhold ??= 5.0;
+        this.eThreshhold ??= 5;
+        this.eThreshhold = Math.max(5, this.eThreshhold);
 
         // Only parents split, children die when splitting
         this.isParent ??= true;
@@ -32,10 +43,6 @@ class Particle {
         this.speed ??= 1;
 
         this.children ??= [];
-        this.env ??= {
-            width: 100,
-            height: 100
-        }
 
         // Non parameterized fields
         this.initialVariables = params;
@@ -47,7 +54,7 @@ class Particle {
 
         // Increment and decay energy
         this.energy += this.energyPerSecond * delta * this.eMultiplier;
-        this.energy -= this.eDecay * delta;
+        this.energyPerSecond -= this.eDecay * delta;
 
         // Cap at 0, split
         if (this.energy < 0) {
@@ -73,16 +80,17 @@ class Particle {
 
     // Handles sound input to the particle
     inputSound = (input) => {
-        if (this.children.length > 0) {
+        if (this.children?.length > 0) {
             this.children[0]?.inputSound(input);
             this.children[1]?.inputSound(input);
         }
-        let pitch = input.pitch;
+        let pitch = input.pitch * 2;
         let volume = input.volume;
 
-        let inputMulti = this.getMultiplierFromPitch(pitch);
+        let positionValue = this.position[0] + this.position[1];
 
-        this.energyPerSecond = (volume * this.volumeMultiplier) * inputMulti;
+        if (Math.abs(pitch - positionValue) < 100)
+            this.energyPerSecond = volume * 20;
     }
 
     split = () => {
@@ -117,16 +125,10 @@ class Particle {
 
     getColor = () => {
         // TODO: move to constructor
-        const colors = [
-            "#a3c4bc",
-            "#bfd7b5",
-            "#e7efc5",
-            "#f2dda4",
-            "#fe4a49"
-        ];
+
 
         // linearly interpolate between 0-energyThreshold
-        const index = Math.floor(this.energy / (this.eThreshhold + 1) * colors.length);
+        const index = Math.floor(this.energy / (this.eThreshhold - 2) * colors.length);
         return colors[index];
     }
 
