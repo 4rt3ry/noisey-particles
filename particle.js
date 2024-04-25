@@ -56,6 +56,9 @@ class Particle {
         this.energy += this.energyPerSecond * delta * this.eMultiplier;
         this.energyPerSecond -= this.eDecay * delta;
 
+        this.speed -= delta * 10;
+        if (this.speed < 10) this.speed = 10;
+
         // Cap at 0, split
         if (this.energy < 0) {
             this.energy = 0;
@@ -89,8 +92,10 @@ class Particle {
 
         let positionValue = this.position[0] + this.position[1];
 
-        if (Math.abs(pitch - positionValue) < 100)
+        if (Math.abs(pitch - positionValue) < 100) {
             this.energyPerSecond = volume * 20;
+            this.speed = volume * 100 + 100;
+        }
     }
 
     split = () => {
@@ -106,16 +111,6 @@ class Particle {
 
         }
         return;
-    }
-
-    // Returns a multiplier based on a given pitch (0 - 1.0)
-    getMultiplierFromPitch = (pitch) => {
-        let pDif = Math.abs(this.desiredPitch - pitch);
-        if (pDif > this.pitchVariance) {
-            return 0;
-        } else {
-            return (this.pitchVariance - pDif) / this.pitchVariance;
-        }
     }
 
     // Adjusts size based on current energy
