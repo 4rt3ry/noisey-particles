@@ -1,4 +1,5 @@
 import { Particle } from './particle.js';
+import { audioInput } from './audio-input.js'
 
 let particles = [];
 
@@ -42,17 +43,20 @@ const init = () => {
 }
 
 function draw() {
-    ctx.fillStyle = "rgb(0, 0, 0, 0.05)";
+    ctx.fillStyle = "rgb(0, 0, 0, 0.07)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = "white";
 
+    let input = audioInput();
+    if ((input.pitch ?? 0) > 0)
+        console.log(input);
+    console.log(input);
+
     for (let i = 0; i < particles.length; i++) {
         particles[i].update(env.delta, ctx);
-        particles[i].inputSound({ pitch: 1, volume: 1.5 });
+        particles[i].inputSound(input);
     }
-
-    // Test
 
     window.requestAnimationFrame(draw);
 }

@@ -10,6 +10,41 @@ let analyserNode; // look at those bri'ish spellings
 const smoothAmount = 3;
 const smoothBuffer = new Array(smoothAmount).fill(0);
 
+let soundEnabled = false;
+
+const audioInput = () => {
+
+    const output = {
+        pitch: 0,
+        volume: 0
+    }
+
+    if (soundEnabled) {
+        const bufferLength = analyserNode.fftSize;
+        const pitchBuffer = new Float32Array(bufferLength);
+        const volumeBuffer = new Float32Array(bufferLength / 2);
+        analyserNode.getFloatTimeDomainData(pitchBuffer);
+        analyserNode.getFloatFrequencyData(volumeBuffer);
+
+        // auto corrected pitch value
+        // btw, smooth is not pure so it can only be used once
+        // pretty bad design,but I don't care
+        const acPitch = autoCorrelate(pitchBuffer, audioCtx.sampleRate);
+        // const acPitch = smooth(autoCorrelate(pitchBuffer, audioCtx.sampleRate));
+
+        if (acPitch > 0) {
+            output.pitch = Math.floor(acPitch);
+            const volumeSum = volumeBuffer.reduce((a, value) => a + value, 0);
+            const averageVolume = volumeSum / volumeBuffer.length;
+
+            if (averageVolume > -120) {
+                output.volume = Math.min(averageVolume + 120, 50) / 50;
+            }
+        }
+    }
+    return output;
+}
+
 const startAnalyzer = () => {
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,7 +65,8 @@ const startAnalyzer = () => {
                 // capture microphone input
                 micStream = audioCtx.createMediaStreamSource(stream);
                 micStream.connect(analyserNode);
-                analyze(analyserNode);
+
+                soundEnabled = true;
             },
             function (e) {
                 alert('Error capturing audio.');
@@ -38,32 +74,6 @@ const startAnalyzer = () => {
         );
 
     } else { alert('getUserMedia not supported in this browser.'); }
-}
-
-const analyze = () => {
-    // Get pitch data 
-    requestAnimationFrame(analyze);
-    const bufferLength = analyserNode.fftSize;
-    const buffer = new Float32Array(bufferLength);
-    analyserNode.getFloatTimeDomainData(buffer);
-
-    const acValue = smooth(autoCorrelate(buffer, audioCtx.sampleRate));
-    if (acValue > 0)
-    {
-        console.log(acValue);
-    }
-
-    // Get volume data?? IDK its some kind of data
-    {
-        const array = new Float32Array(analyserNode.fftSize / 2);
-        analyserNode.getFloatFrequencyData(array);
-        const arraySum = array.reduce((a, value) => a + value, 0);
-        const average = arraySum / array.length;
-    
-        // if (average > -120) {
-        //     console.log(Math.round(average) + 120);
-        // }
-    }
 }
 
 // must be run per frame
@@ -176,3 +186,8 @@ const autoCorrelate = (buffer, sampleRate) => {
 }
 
 document.onclick = () => startAnalyzer();
+
+
+export {
+    audioInput
+}
