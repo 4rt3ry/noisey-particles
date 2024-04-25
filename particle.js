@@ -8,6 +8,14 @@ const colors = [
     "#fe4a49"
 ];
 
+const setColors = (newColors) => {
+    console.log(colors);
+    for(let i = 0; i < newColors.length; i++){
+        colors[i] = newColors[i];
+    }
+    console.log(colors);
+}
+
 const pitchRange = [60, 1000];
 
 class Particle {
@@ -163,8 +171,7 @@ class Particle {
     getSize = () => {
         return this.size;
     }
-
-
 }
 
 export { Particle };
+export { setColors };
